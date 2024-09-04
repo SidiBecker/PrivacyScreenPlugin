@@ -55,7 +55,7 @@ public class PrivacyScreenPlugin extends CordovaPlugin {
   private void enable(CallbackContext callbackContext) throws JSONException {
 
     Activity activity = this.cordova.getActivity();
-    activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+    activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
 
     callbackContext.success("true");
 

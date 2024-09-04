@@ -12,6 +12,7 @@ import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaWebView;
 
 import android.app.Activity;
+import android.os.Looper;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -38,11 +39,11 @@ public class PrivacyScreenPlugin extends CordovaPlugin {
     switch (action) {
 
       case Actions.ENABLE:
-        this.enable(callbackContext);
+        this.setScreenCaptureOnMainThread(true, callbackContext);
         return true;
 
       case Actions.DISABLE:
-        this.disable(callbackContext);
+        this.setScreenCaptureOnMainThread(false, callbackContext);
         return true;
 
       default:
@@ -52,21 +53,40 @@ public class PrivacyScreenPlugin extends CordovaPlugin {
     return false;
   }
 
-  private void enable(CallbackContext callbackContext) throws JSONException {
-
-    Activity activity = this.cordova.getActivity();
-    activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
-
-    callbackContext.success("true");
-
+  private boolean isMainThread() {
+    return Looper.getMainLooper().getThread() == Thread.currentThread();
   }
 
-  private void disable(CallbackContext callbackContext) throws JSONException {
+  private void setScreenCaptureOnMainThread(Boolean enable, CallbackContext callbackContext) {
+    if (isMainThread()) {
+      setScreenCapture(enable, callbackContext);
+    }
+    else {
+      Activity activity = this.cordova.getActivity();
+
+      activity.runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+          setScreenCapture(enable, callbackContext);
+        }
+      });
+    }
+  }
+
+  private void setScreenCapture(Boolean enable, CallbackContext callbackContext) {
     Activity activity = this.cordova.getActivity();
 
-    activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
+    Window window = activity.getWindow();
 
-    callbackContext.success("true");
+    if (enable) {
+      window.addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+    }
+    else {
+      window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
+    }
 
+    callbackContext.success();
   }
+
+
 }

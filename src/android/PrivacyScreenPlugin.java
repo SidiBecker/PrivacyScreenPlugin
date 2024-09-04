@@ -4,7 +4,7 @@
  * Copyright (c) 2014 Tommy-Carlos Williams. All rights reserved.
  * MIT Licensed
  */
-package org.devgeeks.privacyscreen;
+package cordova.plugin.privacyscreen;
 
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CallbackContext;
@@ -24,14 +24,49 @@ import android.os.Bundle;
 
 /**
  * This class sets the FLAG_SECURE flag on the window to make the app
- *  private when shown in the task switcher
+ * private when shown in the task switcher
  */
 public class PrivacyScreenPlugin extends CordovaPlugin {
+  private interface Actions {
+    public static final String ENABLE = "enable";
+    public static final String DISABLE = "disable";
+  }
 
   @Override
-  public void initialize(CordovaInterface cordova, CordovaWebView webView) {
-    super.initialize(cordova, webView);
+  public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+
+    switch (action) {
+
+      case Actions.ENABLE:
+        this.enable(callbackContext);
+        return true;
+
+      case Actions.DISABLE:
+        this.disable(callbackContext);
+        return true;
+
+      default:
+        callbackContext.error("Method " + action + " not found");
+        break;
+    }
+    return false;
+  }
+
+  private void enable(CallbackContext callbackContext) throws JSONException {
+
     Activity activity = this.cordova.getActivity();
     activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+
+    callbackContext.success("true");
+
+  }
+
+  private void disable(CallbackContext callbackContext) throws JSONException {
+    Activity activity = this.cordova.getActivity();
+
+    activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
+
+    callbackContext.success("true");
+
   }
 }
